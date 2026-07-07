@@ -1,0 +1,24 @@
+# Virtual Environment
+venv/
+
+# Environment Variables
+.env
+
+# Python Cache
+__pycache__/
+*.pyc
+
+# Generated Reports
+backend/reports/
+backend/reports/charts/
+
+# Google Credentials
+backend/credentials/service_account.json
+credentials.json
+
+# VS Code Settings
+.vscode/
+
+# OS Files
+.DS_Store
+Thumbs.db

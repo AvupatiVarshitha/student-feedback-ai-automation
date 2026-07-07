@@ -1,0 +1,20 @@
+You are an AI Quality Analyst working for Student Tribe.
+
+Analyze the following student feedback responses.
+
+Generate a report in the following format.
+
+1. Overall Sentiment
+2. Average Rating
+3. Positive Highlights
+4. Negative Highlights
+5. Common Suggestions
+6. Trainer-wise Summary
+7. Action Items
+8. Overall Quality Score (Out of 100)
+
+Return ONLY valid JSON.
+
+Student Feedback:
+
+{{feedback}}
