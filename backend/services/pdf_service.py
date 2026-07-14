@@ -1,51 +1,106 @@
-
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.enums import TA_CENTER
-from reportlab.lib.units import inch
-from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table,
-    TableStyle, Image, PageBreak
-)
 import os
 
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
+
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle,
+    Image,
+    PageBreak
+)
+
+
 class PDFService:
+
     def __init__(self):
+
         self.styles = getSampleStyleSheet()
 
+    # -------------------------------------------------
+    # Heading
+    # -------------------------------------------------
+
     def _heading(self, text):
+
         style = self.styles["Heading1"]
+
         style.alignment = TA_CENTER
+
         style.textColor = colors.HexColor("#0B3C5D")
+
         return Paragraph(text, style)
 
-    def _section(self, title):
-        return Paragraph(f"<b>{title}</b>", self.styles["Heading2"])
+    # -------------------------------------------------
+    # Section
+    # -------------------------------------------------
+
+    def _section(self, text):
+
+        return Paragraph(
+            f"<b>{text}</b>",
+            self.styles["Heading2"]
+        )
+
+    # -------------------------------------------------
+    # Chart
+    # -------------------------------------------------
 
     def _add_chart(self, story, path, title):
+
         if os.path.exists(path):
-            story.append(self._section(title))
-            story.append(Image(path, width=6.3*inch, height=3.6*inch))
-            story.append(Spacer(1,0.2*inch))
+
+            story.append(
+                self._section(title)
+            )
+
+            story.append(
+                Image(
+                    path,
+                    width=6.3 * inch,
+                    height=3.6 * inch
+                )
+            )
+
+            story.append(
+                Spacer(1, 0.2 * inch)
+            )
+
+    # -------------------------------------------------
+    # PDF
+    # -------------------------------------------------
 
     def build_pdf(self, report, output_path):
 
         doc = SimpleDocTemplate(output_path)
 
-        story=[]
+        story = []
 
-        stats=report["statistics"]
-        ai=report["ai_analysis"]
+        # ------------------------------
+        # Cover
+        # ------------------------------
 
-        quality=ai.get("Overall Quality Score",
-                    ai.get("Overall Quality Score (Out of 100)","N/A"))
+        story.append(
+            self._heading(
+                "Student Tribe Weekly Feedback Report"
+            )
+        )
 
-        sentiment=ai.get("Overall Sentiment","N/A")
+        story.append(
+            Paragraph(
+                "<b>AI Powered Analytics Dashboard</b>",
+                self.styles["Heading2"]
+            )
+        )
 
-        story.append(self._heading("Student Tribe Weekly Feedback Report"))
-        story.append(Paragraph("<b>AI Powered Analytics Dashboard</b>",
-                               self.styles["Heading2"]))
-        story.append(Spacer(1,0.2*inch))
+        story.append(
+            Spacer(1, 0.3 * inch)
+        )
 
         story.append(
             Paragraph(
@@ -54,84 +109,303 @@ class PDFService:
             )
         )
 
-        story.append(Spacer(1,0.2*inch))
+        story.append(
+            Spacer(1, 0.4 * inch)
+        )
 
-        table=Table([
-            ["Metric","Value"],
-            ["Responses",stats["total_responses"]],
-            ["Course Satisfaction",stats["course_satisfaction"]],
-            ["Trainer Rating",stats["trainer_rating"]],
-            ["Program Team Rating",stats["program_team_rating"]],
-            ["Quality Score",quality],
-            ["Overall Sentiment",sentiment]
-        ],colWidths=[3.5*inch,2.5*inch])
+        # -------------------------------------------------
+        # Every Batch
+        # -------------------------------------------------
 
-        table.setStyle(TableStyle([
-            ("BACKGROUND",(0,0),(-1,0),colors.HexColor("#0B3C5D")),
-            ("TEXTCOLOR",(0,0),(-1,0),colors.white),
-            ("GRID",(0,0),(-1,-1),0.5,colors.grey),
-            ("BACKGROUND",(0,1),(-1,-1),colors.whitesmoke),
-            ("FONTNAME",(0,0),(-1,0),"Helvetica-Bold"),
-            ("ALIGN",(0,0),(-1,-1),"CENTER"),
-            ("BOTTOMPADDING",(0,0),(-1,0),8),
-        ]))
+        for batch in report["batches"]:
 
-        story.append(table)
-        story.append(Spacer(1,0.25*inch))
+            stats = batch["statistics"]
 
-        story.append(self._section("Executive Summary"))
-        story.append(Paragraph(str(sentiment),self.styles["BodyText"]))
+            ai = batch["ai_analysis"]
 
-        story.append(PageBreak())
+            batch_name = batch["name"]
 
-        chart_dir="backend/reports/charts"
+            quality = ai.get(
+                "Overall Quality Score",
+                ai.get(
+                    "Overall Quality Score (Out of 100)",
+                    "N/A"
+                )
+            )
 
-        self._add_chart(story, os.path.join(chart_dir,"ratings.png"),"Ratings Overview")
-        self._add_chart(story, os.path.join(chart_dir,"concept_clarity.png"),"Concept Clarity")
-        self._add_chart(story, os.path.join(chart_dir,"course_pace.png"),"Course Pace")
+            sentiment = ai.get(
+                "Overall Sentiment",
+                "N/A"
+            )
 
-        story.append(PageBreak())
+            story.append(
+                self._heading(batch_name)
+            )
 
-        story.append(self._section("Top Learning Topics"))
-        for topic,count in stats.get("topics_learned",[]):
-            story.append(Paragraph(f"• {topic} ({count})",self.styles["BodyText"]))
+            story.append(
+                Spacer(1, 0.2 * inch)
+            )
 
-        story.append(Spacer(1,0.2*inch))
+            table = Table(
 
-        story.append(self._section("Common Challenges"))
-        for item,count in stats.get("common_challenges",[])[:10]:
-            story.append(Paragraph(f"• {item} ({count})",self.styles["BodyText"]))
+                [
 
-        story.append(Spacer(1,0.2*inch))
+                    ["Metric", "Value"],
 
-        story.append(self._section("Improvement Suggestions"))
-        for item,count in stats.get("improvement_suggestions",[])[:10]:
-            story.append(Paragraph(f"• {item} ({count})",self.styles["BodyText"]))
+                    ["Responses",
+                     stats["total_responses"]],
 
-        story.append(PageBreak())
+                    ["Course Satisfaction",
+                     stats["course_satisfaction"]],
 
-        story.append(self._section("Key Strengths"))
-        for s in ai.get("Key Strengths",[]):
-            story.append(Paragraph(f"✔ {s}",self.styles["BodyText"]))
+                    ["Trainer Rating",
+                     stats["trainer_rating"]],
 
-        story.append(Spacer(1,0.2*inch))
+                    ["Program Team Rating",
+                     stats["program_team_rating"]],
 
-        story.append(self._section("Major Concerns"))
-        for s in ai.get("Major Concerns",[]):
-            story.append(Paragraph(f"⚠ {s}",self.styles["BodyText"]))
+                    ["Quality Score",
+                     quality],
 
-        story.append(Spacer(1,0.2*inch))
+                    ["Overall Sentiment",
+                     sentiment]
 
-        story.append(self._section("Action Items"))
-        for s in ai.get("Action Items",[]):
-            story.append(Paragraph(f"• {s}",self.styles["BodyText"]))
+                ],
 
-        story.append(Spacer(1,0.3*inch))
+                colWidths=[
+                    3.5 * inch,
+                    2.5 * inch
+                ]
 
-        story.append(Paragraph(
-            f"<b>Overall Quality Score:</b> {quality}/100",
-            self.styles["Heading2"]
-        ))
+            )
+
+            table.setStyle(
+
+                TableStyle([
+
+                    ("BACKGROUND",
+                     (0, 0),
+                     (-1, 0),
+                     colors.HexColor("#0B3C5D")),
+
+                    ("TEXTCOLOR",
+                     (0, 0),
+                     (-1, 0),
+                     colors.white),
+
+                    ("GRID",
+                     (0, 0),
+                     (-1, -1),
+                     0.5,
+                     colors.grey),
+
+                    ("BACKGROUND",
+                     (0, 1),
+                     (-1, -1),
+                     colors.whitesmoke),
+
+                    ("ALIGN",
+                     (0, 0),
+                     (-1, -1),
+                     "CENTER"),
+
+                    ("FONTNAME",
+                     (0, 0),
+                     (-1, 0),
+                     "Helvetica-Bold")
+
+                ])
+
+            )
+
+            story.append(table)
+
+            story.append(
+                Spacer(1, 0.3 * inch)
+            )
+
+            chart_folder = os.path.join(
+                "backend",
+                "reports",
+                "charts",
+                batch_name
+            )
+
+            self._add_chart(
+                story,
+                os.path.join(chart_folder, "ratings.png"),
+                "Average Ratings"
+            )
+
+            self._add_chart(
+                story,
+                os.path.join(chart_folder, "course_pace.png"),
+                "Course Pace"
+            )
+
+            self._add_chart(
+                story,
+                os.path.join(chart_folder, "concept_clarity.png"),
+                "Concept Clarity"
+            )
+
+            self._add_chart(
+                story,
+                os.path.join(chart_folder, "topics.png"),
+                "Top Learning Topics"
+            )
+
+            self._add_chart(
+                story,
+                os.path.join(chart_folder, "suggestions.png"),
+                "Improvement Suggestions"
+            )
+
+            # -----------------------------------------
+            # AI Analysis
+            # -----------------------------------------
+
+            story.append(
+                self._section("Executive Summary")
+            )
+
+            story.append(
+                Paragraph(
+                    str(sentiment),
+                    self.styles["BodyText"]
+                )
+            )
+
+            story.append(
+                Spacer(1, 0.2 * inch)
+            )
+
+            story.append(
+                self._section("Top Learning Topics")
+            )
+
+            for topic, count in stats.get("topics_learned", []):
+
+                story.append(
+                    Paragraph(
+                        f"• {topic} ({count})",
+                        self.styles["BodyText"]
+                    )
+                )
+
+            story.append(
+                Spacer(1, 0.2 * inch)
+            )
+
+            story.append(
+                self._section("Common Challenges")
+            )
+
+            for challenge, count in stats.get("common_challenges", [])[:10]:
+
+                story.append(
+                    Paragraph(
+                        f"• {challenge} ({count})",
+                        self.styles["BodyText"]
+                    )
+                )
+
+            story.append(
+                Spacer(1, 0.2 * inch)
+            )
+
+            story.append(
+                self._section("Improvement Suggestions")
+            )
+
+            for suggestion, count in stats.get("improvement_suggestions", [])[:10]:
+
+                story.append(
+                    Paragraph(
+                        f"• {suggestion} ({count})",
+                        self.styles["BodyText"]
+                    )
+                )
+
+            story.append(
+                Spacer(1, 0.3 * inch)
+            )
+
+            story.append(
+                self._section("Key Strengths")
+            )
+
+            for item in ai.get("Key Strengths", []):
+
+                story.append(
+                    Paragraph(
+                        f"✔ {item}",
+                        self.styles["BodyText"]
+                    )
+                )
+
+            story.append(
+                Spacer(1, 0.2 * inch)
+            )
+
+            story.append(
+                self._section("Major Concerns")
+            )
+
+            for item in ai.get("Major Concerns", []):
+
+                story.append(
+                    Paragraph(
+                        f"⚠ {item}",
+                        self.styles["BodyText"]
+                    )
+                )
+
+            story.append(
+                Spacer(1, 0.2 * inch)
+            )
+
+            story.append(
+                self._section("Action Items")
+            )
+
+            for item in ai.get("Action Items", []):
+
+                story.append(
+                    Paragraph(
+                        f"• {item}",
+                        self.styles["BodyText"]
+                    )
+                )
+
+            story.append(
+                Spacer(1, 0.3 * inch)
+            )
+
+            story.append(
+
+                Paragraph(
+
+                    f"<b>Overall Quality Score:</b> {quality}/100",
+
+                    self.styles["Heading2"]
+
+                )
+
+            )
+
+            # -----------------------------------------
+            # Next Batch
+            # -----------------------------------------
+
+            if batch != report["batches"][-1]:
+
+                story.append(PageBreak())
+
+        # -----------------------------------------
+        # Build PDF
+        # -----------------------------------------
 
         doc.build(story)
-        print("PDF generated successfully.")
+
+        print("\n✅ Multi Batch PDF Generated Successfully!")

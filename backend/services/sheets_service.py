@@ -1,9 +1,15 @@
 import gspread
 from google.oauth2.service_account import Credentials
 
-from backend.config import GOOGLE_CREDENTIALS, GOOGLE_SHEET_NAME
+from backend.config import (
+    GOOGLE_CREDENTIALS,
+    BATCHES
+)
 
-# Google API permissions
+# -----------------------------------------
+# Google API Permissions
+# -----------------------------------------
+
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets.readonly",
     "https://www.googleapis.com/auth/drive.readonly"
@@ -12,8 +18,15 @@ SCOPES = [
 
 def get_feedback_data():
     """
-    Reads all responses from the Google Sheet
-    and returns them as a list of dictionaries.
+    Reads feedback from all batch sheets.
+
+    Returns:
+
+    {
+        "Batch 1": [...],
+        "Batch 2": [...],
+        "Batch 3": [...]
+    }
     """
 
     credentials = Credentials.from_service_account_file(
@@ -23,12 +36,22 @@ def get_feedback_data():
 
     client = gspread.authorize(credentials)
 
-    spreadsheet = client.open(GOOGLE_SHEET_NAME)
-    print("Reading Sheet:", spreadsheet.title)
-    print("Sheet URL:", spreadsheet.url)
+    all_feedback = {}
 
-    worksheet = spreadsheet.sheet1
+    for batch in BATCHES:
 
-    records = worksheet.get_all_records()
+        spreadsheet = client.open(
+            batch["sheet_name"]
+        )
 
-    return records
+        print(f"\nReading {batch['name']}")
+        print("Sheet :", spreadsheet.title)
+        print("URL   :", spreadsheet.url)
+
+        worksheet = spreadsheet.sheet1
+
+        records = worksheet.get_all_records()
+
+        all_feedback[batch["name"]] = records
+
+    return all_feedback

@@ -1,0 +1,29 @@
+[
+    {
+        "id": 1,
+        "name": "Batch 1",
+        "telegram_chat_id": "-5563499361",
+        "google_form": "https://docs.google.com/forms/d/e/1FAIpQLScvvj6bUqRRzjMmE7v2O1xkTWzlylgTv6XRvOdZPZvSzqvqqw/viewform?usp=header",
+        "google_sheet": "student tribe feedback form- Batch 1",
+        "email": "",
+        "active": true
+    },
+    {
+        "id": 2,
+        "name": "batch 2",
+        "telegram_chat_id": "-5097850045",
+        "google_form": "https://docs.google.com/forms/d/e/1FAIpQLSdcn6IFny8dZKZOzPQCUKxsTGW8de33acryAxMUtpizUlqyrg/viewform?usp=header",
+        "google_sheet": "student tribe feedback form- Batch 2",
+        "email": "varshu130405@gmail.com",
+        "active": true
+    },
+    {
+        "id": 3,
+        "name": "Batch 3",
+        "telegram_chat_id": "-5363911975",
+        "google_form": "https://docs.google.com/forms/d/e/1FAIpQLSc3ZZBMY2N58sXJpbqszWSri6Yfc3-7Oec9rgMs87By2oOGlw/viewform?usp=publish-editor",
+        "google_sheet": "student tribe feedback form- Batch 3",
+        "email": "varshu130405@gmail.com",
+        "active": true
+    }
+]

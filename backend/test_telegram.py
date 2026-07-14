@@ -1,20 +1,13 @@
+from backend.config import BATCHES
 from backend.services.telegram_service import send_message
 
-from backend.config import GOOGLE_FORM_LINK
+for batch in BATCHES:
 
+    print(f"\nSending to {batch['name']}")
 
-message = f"""
-📢 <b>Student Tribe Weekly Feedback</b>
+    result = send_message(
+        batch["chat_id"],
+        f"✅ Testing {batch['name']}"
+    )
 
-Hello Everyone 👋
-
-Please fill this week's feedback form.
-
-🔗 {GOOGLE_FORM_LINK}
-
-Thank you 😊
-"""
-
-response = send_message(message)
-
-print(response)
+    print(result)

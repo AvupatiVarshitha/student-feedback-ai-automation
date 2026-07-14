@@ -1,22 +1,15 @@
 {
     "organization": "Student Tribe",
-
     "feedback_form": {
         "title": "Weekly Feedback",
         "google_form_link": ""
     },
-
     "schedule": {
-        "send_day": "Sunday",
-        "send_time": "06:30 PM",
-
-        "analysis_day": "Sunday",
-        "analysis_time": "08:00 PM",
-
-        "report_day": "Monday",
-        "report_time": "08:00 AM"
+        "form_date": "2026-07-14",
+        "form_time": "22:39",
+        "report_date": "2026-07-14",
+        "report_time": "22:40"
     },
-
     "analysis": {
         "days_to_analyze": 7
     }

@@ -7,16 +7,31 @@ from backend.services.ollama_service import analyze_feedback
 
 class ReportBuilder:
 
-    def __init__(self, feedback):
+    def __init__(self, all_feedback):
 
-        self.feedback = feedback
-        self.processor = DataProcessor(feedback)
+        self.all_feedback = all_feedback
 
     def build_report(self):
 
-        summary = self.processor.build_summary()
+        final_report = {
 
-        prompt = f"""
+            "generated_at": datetime.now().strftime("%d-%m-%Y %H:%M"),
+
+            "batches": []
+
+        }
+
+        # ------------------------------------------
+        # Generate Report For Every Batch
+        # ------------------------------------------
+
+        for batch_name, feedback in self.all_feedback.items():
+
+            processor = DataProcessor(feedback)
+
+            summary = processor.build_summary()
+
+            prompt = f"""
 You are an Education Quality Analyst.
 
 Analyze the following weekly feedback summary.
@@ -39,25 +54,31 @@ Generate a JSON report with the following sections:
 Return ONLY valid JSON.
 """
 
-        ai_report = analyze_feedback(prompt)
+            ai_report = analyze_feedback(prompt)
 
-        try:
-            ai_report = ai_report.replace("```json", "").replace("```", "").strip()
-            ai_report = json.loads(ai_report)
-        except:
-            pass
+            try:
 
-        report = {
+                ai_report = (
+                    ai_report
+                    .replace("```json", "")
+                    .replace("```", "")
+                    .strip()
+                )
 
-            "generated_at":
-                datetime.now().strftime("%d-%m-%Y %H:%M"),
+                ai_report = json.loads(ai_report)
 
-            "statistics":
-                summary,
+            except Exception:
 
-            "ai_analysis":
-                ai_report
+                pass
 
-        }
+            final_report["batches"].append({
 
-        return report
+                "name": batch_name,
+
+                "statistics": summary,
+
+                "ai_analysis": ai_report
+
+            })
+
+        return final_report

@@ -1,167 +1,55 @@
 from datetime import datetime
-import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from backend.config import GOOGLE_FORM_LINK
-from backend.services.telegram_service import send_message
+from backend.automation_runner import AutomationRunner
+from backend.services.scheduler_service import SchedulerService
 
-from backend.services.sheets_service import get_feedback_data
-from backend.services.data_processor import DataProcessor
-from backend.services.report_builder import ReportBuilder
-from backend.services.charts_service import ChartService
-from backend.services.pdf_service import PDFService
-from backend.services.email_service import EmailService
+scheduler = BackgroundScheduler()
 
-# -------------------------------------------------------
-# JOB 1 : SEND GOOGLE FORM
-# -------------------------------------------------------
+runner = AutomationRunner()
 
-def send_feedback_form():
+def load_schedule():
 
-    message = f"""
-📢 <b>Student Tribe Weekly Feedback</b>
+    scheduler.remove_all_jobs()
 
-Hello Everyone 👋
+    service = SchedulerService()
 
-Please fill this week's feedback form.
-
-🔗 {GOOGLE_FORM_LINK}
-
-Thank you 😊
-"""
-
-    send_message(message)
-
-    print("\n✅ Google Form Link Sent Successfully!")
-
-
-# -------------------------------------------------------
-# JOB 2 : GENERATE REPORT
-# -------------------------------------------------------
-
-def generate_report():
-
-    try:
-
-        print("\nGenerating Weekly Report...")
-
-        # Read Google Sheet
-        feedback = get_feedback_data()
-
-        # Build Report
-        builder = ReportBuilder(feedback)
-
-        report = builder.build_report()
-
-        # Generate Charts
-        charts = ChartService()
-
-        charts.generate_all_charts(
-            report["statistics"]
-        )
-
-        # Generate PDF
-        pdf = PDFService()
-
-        pdf.build_pdf(
-            report,
-            "backend/reports/weekly_report.pdf"
-        )
-
-        # Send Email
-        email = EmailService()
-
-        email.send_report(
-            "backend/reports/weekly_report.pdf"
-        )
-
-        print("\n✅ Weekly Report Generated Successfully!")
-        print("✅ PDF Sent To Email Successfully!")
-
-    except Exception as e:
-
-        print(f"\n❌ Report Generation Failed : {e}")
-
-# -------------------------------------------------------
-# MAIN
-# -------------------------------------------------------
-
-def main():
-
-    print("=" * 60)
-    print("      STUDENT TRIBE AUTOMATION SCHEDULER")
-    print("=" * 60)
-
-    # -----------------------------
-    # FORM SCHEDULE
-    # -----------------------------
-
-    form_date = input("\nEnter Form Send Date (DD-MM-YYYY): ")
-
-    form_time = input("Enter Form Send Time (HH:MM): ")
-
-    # -----------------------------
-    # REPORT SCHEDULE
-    # -----------------------------
-
-    report_date = input("\nEnter Report Generation Date (DD-MM-YYYY): ")
-
-    report_time = input("Enter Report Generation Time (HH:MM): ")
-
-    # -----------------------------
+    form_date, form_time = service.get_form_schedule()
+    report_date, report_time = service.get_report_schedule()
 
     form_datetime = datetime.strptime(
         f"{form_date} {form_time}",
-        "%d-%m-%Y %H:%M"
+        "%Y-%m-%d %H:%M"
     )
 
     report_datetime = datetime.strptime(
         f"{report_date} {report_time}",
-        "%d-%m-%Y %H:%M"
+        "%Y-%m-%d %H:%M"
     )
 
-    scheduler = BackgroundScheduler()
-
-    # Job 1
+    # Send Google Forms
     scheduler.add_job(
-        send_feedback_form,
+        runner.send_forms,
         trigger="date",
-        run_date=form_datetime
+        run_date=form_datetime,
+        id="form_job"
     )
 
-    # Job 2
+    # Run complete automation
     scheduler.add_job(
-        generate_report,
+        runner.run_report_pipeline,
         trigger="date",
-        run_date=report_datetime
+        run_date=report_datetime,
+        id="report_job"
     )
 
-    scheduler.start()
+    print("✅ Schedule Loaded")
+def start_scheduler():
 
-    print("\n" + "=" * 60)
-    print("✅ Scheduler Started Successfully")
-    print("=" * 60)
+    load_schedule()
 
-    print(f"\n📢 Form will be sent on     : {form_datetime}")
+    if not scheduler.running:
+        scheduler.start()
 
-    print(f"📄 Report will be generated : {report_datetime}")
-
-    print("\nWaiting for scheduled jobs...\n")
-
-    try:
-
-        while True:
-
-            time.sleep(1)
-
-    except (KeyboardInterrupt, SystemExit):
-
-        scheduler.shutdown()
-
-        print("\nScheduler Stopped.")
-
-
-if __name__ == "__main__":
-
-    main()
+    print("🚀 Automation Scheduler Started")

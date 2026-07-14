@@ -6,15 +6,15 @@ class ChartService:
 
     def __init__(self):
 
-        self.chart_folder = "backend/reports/charts"
-
-        os.makedirs(self.chart_folder, exist_ok=True)
+        self.base_folder = "backend/reports/charts"
+        
+        os.makedirs(self.base_folder, exist_ok=True)
 
     # ------------------------------------
     # Average Ratings
     # ------------------------------------
 
-    def rating_chart(self, summary):
+    def rating_chart(self, summary, folder):
 
         labels = [
             "Course",
@@ -35,7 +35,7 @@ class ChartService:
         plt.ylabel("Rating")
         plt.savefig(
             os.path.join(
-                self.chart_folder,
+                folder,
                 "ratings.png"
             ),
             bbox_inches="tight"
@@ -46,7 +46,7 @@ class ChartService:
     # Course Pace
     # ------------------------------------
 
-    def pace_chart(self, summary):
+    def pace_chart(self, summary, folder):
 
         pace = summary["course_pace"]
 
@@ -60,7 +60,7 @@ class ChartService:
 
         plt.savefig(
             os.path.join(
-                self.chart_folder,
+                folder,
                 "course_pace.png"
             ),
             bbox_inches="tight"
@@ -72,7 +72,7 @@ class ChartService:
     # Concept Clarity
     # ------------------------------------
 
-    def concept_chart(self, summary):
+    def concept_chart(self, summary, folder):
 
         clarity = summary["concept_clarity"]
 
@@ -87,7 +87,7 @@ class ChartService:
 
         plt.savefig(
             os.path.join(
-                self.chart_folder,
+                folder,
                 "concept_clarity.png"
             ),
             bbox_inches="tight"
@@ -99,7 +99,7 @@ class ChartService:
     # Topics Learned
     # ------------------------------------
 
-    def topics_chart(self, summary):
+    def topics_chart(self, summary, folder):
 
         topics = summary["topics_learned"][:5]
 
@@ -115,7 +115,7 @@ class ChartService:
 
         plt.savefig(
             os.path.join(
-                self.chart_folder,
+                folder,
                 "topics.png"
             ),
             bbox_inches="tight"
@@ -127,7 +127,7 @@ class ChartService:
     # Improvement Suggestions
     # ------------------------------------
 
-    def suggestions_chart(self, summary):
+    def suggestions_chart(self, summary, folder):
 
         suggestions = summary["improvement_suggestions"][:5]
 
@@ -143,7 +143,7 @@ class ChartService:
 
         plt.savefig(
             os.path.join(
-                self.chart_folder,
+                folder,
                 "suggestions.png"
             ),
             bbox_inches="tight"
@@ -155,14 +155,20 @@ class ChartService:
     # Generate Everything
     # ------------------------------------
 
-    def generate_all_charts(self, summary):
+    def generate_all_charts(self, summary, batch_name):
+        folder = os.path.join(
+            self.base_folder,
+            batch_name
+    )
 
-        self.rating_chart(summary)
+        os.makedirs(folder, exist_ok=True)
 
-        self.pace_chart(summary)
+        self.rating_chart(summary, folder)
 
-        self.concept_chart(summary)
+        self.pace_chart(summary, folder)
 
-        self.topics_chart(summary)
+        self.concept_chart(summary, folder)
 
-        self.suggestions_chart(summary)
+        self.topics_chart(summary, folder)
+
+        self.suggestions_chart(summary, folder)

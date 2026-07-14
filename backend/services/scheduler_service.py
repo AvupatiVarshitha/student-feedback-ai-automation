@@ -10,14 +10,15 @@ class SchedulerService:
         with open(config_path, "r", encoding="utf-8") as file:
             self.settings = json.load(file)
 
-    def get_send_schedule(self):
-        return self.settings["schedule"]["send_day"], \
-               self.settings["schedule"]["send_time"]
+    def get_form_schedule(self):
+        return (
+            self.settings["schedule"]["form_date"],
+            self.settings["schedule"]["form_time"]
+        )
 
-    def get_analysis_schedule(self):
-        return self.settings["schedule"]["analysis_day"], \
-               self.settings["schedule"]["analysis_time"]
 
     def get_report_schedule(self):
-        return self.settings["schedule"]["report_day"], \
-               self.settings["schedule"]["report_time"]
+        return (
+            self.settings["schedule"]["report_date"],
+            self.settings["schedule"]["report_time"]
+        )
