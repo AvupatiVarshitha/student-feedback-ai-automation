@@ -1,19 +1,25 @@
-import requests
+import os
+from groq import Groq
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL = "gemma3:latest"
+client = Groq(
+    api_key=os.getenv("GROQ_API_KEY")
+)
+
+MODEL = "llama-3.1-8b-instant"
 
 
 def analyze_feedback(prompt):
 
-    payload = {
-        "model": MODEL,
-        "prompt": prompt,
-        "stream": False
-    }
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=[
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        temperature=0.3,
+        max_tokens=2048
+    )
 
-    response = requests.post(OLLAMA_URL, json=payload)
-
-    response.raise_for_status()
-
-    return response.json()["response"]
+    return response.choices[0].message.content
