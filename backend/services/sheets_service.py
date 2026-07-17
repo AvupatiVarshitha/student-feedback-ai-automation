@@ -1,6 +1,7 @@
 import gspread
 from google.oauth2.service_account import Credentials
-
+import os
+import json
 from backend.config import (
     GOOGLE_CREDENTIALS,
     BATCHES
@@ -29,8 +30,12 @@ def get_feedback_data():
     }
     """
 
-    credentials = Credentials.from_service_account_file(
-        GOOGLE_CREDENTIALS,
+    credentials_info = json.loads(
+        os.getenv("GOOGLE_CREDENTIALS_JSON")
+    )
+
+    credentials = Credentials.from_service_account_info(
+        credentials_info,
         scopes=SCOPES
     )
 
